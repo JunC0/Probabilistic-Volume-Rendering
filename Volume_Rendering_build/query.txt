@@ -1,0 +1,1 @@
+python RandomForest.py 75 4 data_set/X_train_75d_all_map data_set/Y_train_75d_all_map data_set/X_test_75d_all_map rf_75d_all_map/776 > rf_log/75d_all_map_776
