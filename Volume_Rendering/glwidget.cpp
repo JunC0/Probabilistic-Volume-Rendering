@@ -18,8 +18,23 @@ QVector3D eye_position;
 QVector3D center1;
 QVector3D up;
 int tog;
-int l_t;
+float l_t;
 float scale;
+
+class uchar4{
+public:
+    unsigned char x;
+    unsigned char y;
+    unsigned char z;
+    unsigned char w;
+};
+
+class int3{
+public:
+    int x;
+    int y;
+    int z;
+};
 
 
 float ambi=0.7,diffu=0.1,specu=0.1,shin=8;
@@ -38,13 +53,16 @@ void GLWidget::Load3DFile(){
     data2=new unsigned char[w*h*d];
     fread(data,w*h*d,1,f2);
     fclose(f2);
-    float *G=new float[w*h*d*4];
-    float *G2=new float[w*h*d*4];
+
+    uchar4 *G=new uchar4[w*h*d];
+    int3 *t_G=new int3[w*h*d];
 
     for(int i=0;i<w*h*d;i++){
-        G[i*4+0]=0,G[i*4+1]=0,G[i*4+2]=0,G[i*4+3]=float(data[i])/255.0,
-            data2[i]=0;
-        G2[i*4+0]=0,G2[i*4+1]=0,G2[i*4+2]=0,G2[i*4+3]=0;
+        G[i].x=0,G[i].y=0,G[i].z=0,G[i].w=data[i];
+    }
+
+    for(int i=0;i<w*h*d;i++){
+        data2[i]=0;
     }
 
 
@@ -64,18 +82,36 @@ void GLWidget::Load3DFile(){
                 float t3=(float(data[zp1])-float(data[zm1]));
                 float gt=sqrt(t1*t1+t2*t2+t3*t3);
                 if(gt>max)max=gt;
-                G[cur*4+0]=abs(t1/255.0);
-                G[cur*4+1]=abs(t2/255.0);
-                G[cur*4+2]=abs(t3/255.0);
-                if(t1<0)G2[cur*4+0]=1;
-                if(t2<0)G2[cur*4+1]=1;
-                if(t3<0)G2[cur*4+2]=1;
+                t_G[cur].x=t1;
+                t_G[cur].y=t2;
+                t_G[cur].z=t3;
 
 
             }
         }
     }
+    for(int z=1;z<d-1;z++){
+        for(int y=1;y<h-1;y++){
+            for(int x=1;x<w-1;x++){
+                int cur=z*w*h+y*w+x;
+                int xm1=cur-1;
+                int xp1=cur+1;
+                int ym1=cur-w;
+                int yp1=cur+w;
+                int zm1=cur-w*h;
+                int zp1=cur+w*h;
+                int t1=(int(data[xp1])-int(data[xm1]));
+                int t2=(int(data[yp1])-int(data[ym1]));
+                int t3=(int(data[zp1])-int(data[zm1]));
+                float gt=sqrt(float(t1*t1+t2*t2+t3*t3));
 
+                G[cur].x=int(float(t_G[cur].x)/max*127+127);
+                G[cur].y=int(float(t_G[cur].y)/max*127+127);
+                G[cur].z=int(float(t_G[cur].z)/max*127+127);
+                G[cur].w=gt/max*255;
+            }
+        }
+    }
 
     int histo[256];
     int total_histo;
@@ -103,17 +139,9 @@ void GLWidget::Load3DFile(){
     glTexParameteri(GL_TEXTURE_3D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_3D,GL_TEXTURE_WRAP_R,GL_CLAMP_TO_EDGE);
 
-    glTexImage3D(GL_TEXTURE_3D,0,GL_RGBA,w,h,d,0,GL_RGBA,GL_FLOAT,G);
+    glTexImage3D(GL_TEXTURE_3D,0,GL_RGBA,w,h,d,0,GL_RGBA,GL_UNSIGNED_BYTE,G);
 
-    glGenTextures(1,&gradient2);
-    glBindTexture(GL_TEXTURE_3D,gradient2);
-    glTexParameteri(GL_TEXTURE_3D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_3D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_3D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_3D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_3D,GL_TEXTURE_WRAP_R,GL_CLAMP_TO_EDGE);
 
-    glTexImage3D(GL_TEXTURE_3D,0,GL_RGBA,w,h,d,0,GL_RGBA,GL_FLOAT,G2);
 
     glGenTextures(1,&tex_3D);
     glBindTexture(GL_TEXTURE_3D,tex_3D);
@@ -125,7 +153,7 @@ void GLWidget::Load3DFile(){
 
     glTexImage3D(GL_TEXTURE_3D,0,GL_RED,w,h,d,0,GL_RED,GL_UNSIGNED_BYTE,data2);
 
-    delete [] G,G2;
+    delete [] G,t_G;
 }
 
 QVector3D GLWidget::cross_product(QVector3D v1,QVector3D v2){
@@ -228,7 +256,6 @@ static const char *fragmentShaderSource =
 "uniform vec3 eye_position;\n"
 "uniform sampler3D tex;\n"
 "uniform sampler3D G;\n"
-"uniform sampler3D G2;\n"
 "in vec3 pixel_position;\n"
 "uniform vec3 box_min;\n"
 "uniform vec3 box_max;\n"
@@ -237,7 +264,7 @@ static const char *fragmentShaderSource =
 "uniform float Uambi;\n"
 "uniform float Uspecu;\n"
 "uniform float Ushin;\n"
-"uniform int l_t;\n"
+"uniform float l_t;\n"
 
 "uniform float sample;\n"
 "uniform sampler1D color_table[14];\n"
@@ -334,24 +361,20 @@ static const char *fragmentShaderSource =
 "        for(int i=0;i<sampling_num;i++){\n"
 "            cur_location=cur_location+dir;\n"
 "            vec4 apply=texture3D(G,cur_location);\n"
-"            vec4 apply2=texture3D(G2,cur_location);\n"
-
-"            if(apply2.x>0)apply.x=-apply.x;\n"
-"            if(apply2.y>0)apply.y=-apply.y;\n"
-"            if(apply2.z>0)apply.z=-apply.z;\n"
+"            apply=apply-vec4(0.5,0.5,0.5,0);\n"
 
 "            int apply_alpha=int(apply.w*255.0);\n"
-"            vec3 gr=normalize(vec3(apply));\n"
+"            vec3 gr=-normalize(vec3(apply));\n"
 "            vec3 d_l=eye_position*3+2*up+2*right;\n"
 "            vec4 t_color=vec4(0,0,0,0);\n"
 "            for(int i=0;i<8;i++){\n"
 "                float proba=texture3D(proba_tex[i],cur_location).x;\n"
 "                vec4 tt_color=texture1D(color_table[i],proba);\n"
-"                if(proba!=0)t_color=t_color+vec4(tt_color.x*tt_color.w,tt_color.y*tt_color.w,tt_color.z*tt_color.w,tt_color.w);\n"
+"                if(proba!=0)t_color=t_color+proba*vec4(tt_color.x*tt_color.w,tt_color.y*tt_color.w,tt_color.z*tt_color.w,tt_color.w);\n"
 "            }\n"
 "            float t_alpha=t_color.w;\n"
 "            if(t_color.w>0.004){\n"
-"                if(light_cnt<l_t){"
+"                if(alpha<l_t){"
 "                    first_flag=1;\n"
 "                    light_cnt=light_cnt+1;\n"
 "                    vec3 L=normalize(d_l-cur_location+vec3(0.5,0.5,0.5));\n"
@@ -393,7 +416,6 @@ void GLWidget::initializeGL()
     m_program->bind();
     con_tex=m_program->uniformLocation("tex");
     con_gradient=m_program->uniformLocation("G");
-    con_gradient2=m_program->uniformLocation("G2");
     con_eye_pos=m_program->uniformLocation("eye_position");
     con_box_min=m_program->uniformLocation("box_min");
     con_box_max=m_program->uniformLocation("box_max");
@@ -425,7 +447,7 @@ void GLWidget::initializeGL()
 
     }
 
-    l_t=3;
+    l_t=0.1;
     con_l_t=m_program->uniformLocation("l_t");
     con_specu=m_program->uniformLocation("Uspecu");
     con_diffu=m_program->uniformLocation("Udiffu");
@@ -441,9 +463,7 @@ void GLWidget::initializeGL()
     glUniform1i(con_gradient,1);
     glBindTexture(GL_TEXTURE_3D,gradient);
 
-    glActiveTexture(GL_TEXTURE2);
-    glUniform1i(con_gradient2,2);
-    glBindTexture(GL_TEXTURE_3D,gradient2);
+
 
     for(int i=0;i<tf_num;i++){
         char ttt[30];
@@ -676,8 +696,8 @@ void GLWidget::keyPressEvent(QKeyEvent *event)
         l_t--;
     }
     if(event->key()==Qt::Key_L){
-        FILE*f=fopen("save_result.raw","wb");
-        fwrite(data2,1,w*h*d,f);
+        FILE*f=fopen("prob_256_256_256.raw","wb");
+        fwrite(probability[1],1,w*h*d,f);
         fclose(f);
     }
 
@@ -711,7 +731,7 @@ void GLWidget::apply_75d_all_map_rf(int max_label){
     fclose(case_num);
 
     std::string query;
-    query="python RandomForest.py ";
+    query="python RandomForest2.py ";
 //    query="python RandomForest_cuda_ver.py ";
     query+=itoa(n_map2*3+is_loc,ttt,10);
     query+=" ";
@@ -798,7 +818,7 @@ void GLWidget::shin_change(int a){
     shin=a;
 }
 void GLWidget::l_t_change(int a){
-    l_t=a;
+    l_t=float(a)/500;
 }
 
 
@@ -813,7 +833,7 @@ void GLWidget::set_probability(int max_label){
                     float t[1];
                     fread(t,1,4,f);
                     probability[i][cur]=t[0]*255;
-                    if(probability[i][cur]==0)probability[i][cur]=1;
+//                    if(probability[i][cur]==0)probability[i][cur]=1;
                 }
             }
         }

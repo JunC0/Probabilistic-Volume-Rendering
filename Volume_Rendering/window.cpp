@@ -291,11 +291,11 @@ Window::Window(MainWindow *mw)
     sh->addWidget(shin_b);
 
     QSlider *l_t = new QSlider(Qt::Vertical);
-    l_t->setRange(0, 100);
+    l_t->setRange(0, 500);
     l_t->setSingleStep(1);
     l_t->setTickInterval(10);
     l_t->setTickPosition(QSlider::TicksRight);
-    l_t->setValue(8);
+    l_t->setValue(50);
 
     QPushButton *l_t_b=new QPushButton;
     l_t_b->setText("Light level");
