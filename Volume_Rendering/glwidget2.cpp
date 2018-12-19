@@ -4,7 +4,9 @@
 //Ulsan National Institute of Science and Technology(UNIST)
 ///////////////////////////////////////////////////////////
 
+
 #include "glwidget2.h"
+#include "user_control.h"
 #include <QMouseEvent>
 #include <QOpenGLShaderProgram>
 #include <QCoreApplication>
@@ -23,14 +25,22 @@ GLWidget2::GLWidget2(int num,Window *p,QWidget *parent)
     : QWidget(parent)
 {
 
+
+
     label_number=num;
+
+
     c_window=p;
 
+
     setBackgroundRole(QPalette::Base);
-    setAutoFillBackground(true);
+//    setAutoFillBackground(true);
+
+
 
     histogram_scale=1;
     background.load("back.png");
+
 
     float xx,yy,rr,gg,bb;
     char t[30];
@@ -142,6 +152,25 @@ void GLWidget2::paintEvent(QPaintEvent *)
 
 
 
+     int start_index=0,stop_index=1;
+     for(int i=0;i<256;i++){
+         QPen colormap_pen;
+         QPointF start_t,stop_t;
+         start_t=QPointF(TF_start.x()+i*(TF_stop.x()-TF_start.x())/255,TF_start.y()+70);
+         stop_t=QPointF(TF_start.x()+i*(TF_stop.x()-TF_start.x())/255,TF_start.y()+20);
+
+         if(float(i)/255>points[stop_index].x())stop_index++,start_index++;
+
+         QVector3D t_color;
+         t_color=((float(i)/255-points[start_index].x())*colors[stop_index]+(points[stop_index].x()-float(i)/255)*colors[start_index])/(points[stop_index].x()-points[start_index].x());
+         colormap_pen.setColor(QColor(t_color.x()*255,t_color.y()*255,t_color.z()*255));
+         colormap_pen.setWidth((TF_stop.x()-TF_start.x())/255.0*2);
+         painter.setPen(colormap_pen);
+         painter.drawLine(start_t,stop_t);
+     }
+
+
+
      char tttt[30];
      sprintf(tttt,"color_table%d.txt",label_number);
      FILE *f=fopen(tttt,"w");
@@ -212,6 +241,12 @@ void GLWidget2::paintEvent(QPaintEvent *)
          tt[3]=stop_t-QPoint(0,1);
 
          painter.drawPolygon(tt,4);
+
+         t_pen.setWidth(pen_size*2+1);
+         t_pen.setColor(QColor(0,0,0));
+         painter.setBrush(Qt::NoBrush);
+         painter.setPen(t_pen);
+         painter.drawPoint(stop_t);
 
          t_pen.setWidth(pen_size*2);
          t_pen.setColor(stop_c);

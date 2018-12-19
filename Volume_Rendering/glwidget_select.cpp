@@ -12,12 +12,19 @@
 #include <QtWidgets>
 #include "window.h"
 
+
+//JUNr
 int n_map=24;
+int h1_map=24;
+int h2_map=24;
+int h3_map=24;
+//int check[256][256][256];
 int undo1_check[305][305][256];
 int undo2_check[305][305][256];
 int brush_size=1;
 int first_flag=0;
 float *gradient;
+int add_o=8;
 int add_loc=3;
 
 unsigned char *data2;
@@ -189,8 +196,7 @@ GLWidget_select::GLWidget_select(QUrl fileinfo,int xx,int yy,int zz,Window *pare
             }
         }
 
-
-
+        if(!QDir("data_set").exists())QDir().mkdir("data_set");
 
         FILE * X_test_set_75d_all_map=fopen("data_set\\X_test_75d_all_map","wb");
 
@@ -294,11 +300,17 @@ void GLWidget_select::ReadColorTable(){
 void GLWidget_select::paintGL()
 {
 
+
+
     glClearColor(1, 1, 1,1);
     glLoadIdentity();
+   // glViewport(view_start.x(),view_start.y(),view_end.x()-view_start.x(),view_end.y()-view_start.y());
     glOrtho(view_start.x(),view_end.x(),view_start.y(),view_end.y(),100,-100);
 
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
     glBegin(GL_QUADS);
 
     if(axx!=0){
@@ -683,12 +695,20 @@ void GLWidget_select::keyPressEvent(QKeyEvent *event)
             }
         }
     }
+//    if (event->key() == Qt::Key_Shift){
+//        mw = 1;
+//    }
+
 }
 void GLWidget_select::keyReleaseEvent(QKeyEvent *event)
 {
     if(event->key()==Qt::Key_Control){
         zoom=0;
     }
+//    if (event->key() == Qt::Key_Shift){
+//        mw = 0;
+//    }
+
 }
 void GLWidget_select::set_brush_size(int a){
     brush_size=a;
@@ -699,8 +719,16 @@ void GLWidget_select::apply(bool a){
     int case_n;
     char ttt[30];
     FILE *case_num=fopen("case_number.txt","r");
+    if(case_num==NULL){
+        case_num=fopen("case_number.txt","w");
+        fprintf(case_num,"0");
+        fclose(case_num);
+        fopen("case_number.txt","r");
+    }
     fscanf(case_num,"%d",&case_n);
     fclose(case_num);
+
+    if(!QDir("select_log").exists())QDir().mkdir("select_log");
 
     std::string file_name="select_log\\\\";
     file_name+=itoa(case_n,ttt,10);
@@ -735,6 +763,8 @@ void GLWidget_select::apply(bool a){
     }
     fprintf(selected_voxels,"%d\n",svt);
     fclose(selected_voxels);
+
+    if(!QDir("data_set").exists())QDir().mkdir("data_set");
 
     FILE * X_train_set_75d_all_map=fopen("data_set\\X_train_75d_all_map","wb");
     FILE * Y_train_set_75d_all_map=fopen("data_set\\Y_train_75d_all_map","wb");

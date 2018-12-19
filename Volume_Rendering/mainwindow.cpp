@@ -13,8 +13,10 @@
 #include <QMessageBox>
 #include <QDockWidget>
 
+#include "user_control2.h"
 MainWindow::MainWindow()
 {
+
     setAttribute(Qt::WA_DeleteOnClose);
     createActions();
     createMenus();
@@ -46,12 +48,12 @@ void MainWindow::close()
 void MainWindow::createActions()
 {
 
-    openAct = new QAction(tr("Open..."), this);
+    openAct = new QAction(tr("&Open..."), this);
     openAct->setShortcuts(QKeySequence::Open);
     connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
 
 
-    exitAct = new QAction(tr("Exit"), this);
+    exitAct = new QAction(tr("E&xit"), this);
     exitAct->setShortcuts(QKeySequence::Quit);
     connect(exitAct, SIGNAL(triggered()), this, SLOT(close()));
 
@@ -61,13 +63,13 @@ void MainWindow::createActions()
 
 void MainWindow::createMenus()
 {
-    fileMenu = menuBar()->addMenu(tr("File"));
+    fileMenu = menuBar()->addMenu(tr("&File"));
     fileMenu->addAction(openAct);
     fileMenu->addSeparator();
     fileMenu->addAction(exitAct);
 
 
-    selection = menuBar()->addMenu(tr("Selection"));
+    selection = menuBar()->addMenu(tr("&Selection"));
     selection->addAction(open_selection);
     selection->addSeparator();
     selection->addAction(save_selection);

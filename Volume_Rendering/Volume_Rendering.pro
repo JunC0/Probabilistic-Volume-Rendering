@@ -1,7 +1,3 @@
-##JunYoung Choi
-##juny0603@gmail.com
-##Ulsan National Institute of Science and Technology(UNIST)
-
 HEADERS       = glwidget.h \
                 glwidget2.h \
                 glwidget_select.h \

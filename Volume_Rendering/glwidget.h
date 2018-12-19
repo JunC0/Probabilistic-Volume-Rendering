@@ -12,6 +12,7 @@
 #include <QOpenGLBuffer>
 #include <QMatrix4x4>
 #include <QOpenGLTexture>
+#include <QVector2D>
 
 
 class Window;
@@ -145,6 +146,12 @@ private:
 
     GLuint proba_tex[10];
     int con_proba_tex[10];
+
+    QVector2D shift;
+
+    int fps_start;
+    int fps;
+    QString p_fps;
 };
 
 #endif

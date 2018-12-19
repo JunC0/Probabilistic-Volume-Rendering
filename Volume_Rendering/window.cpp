@@ -42,7 +42,7 @@ Window::Window(MainWindow *mw)
 
     cc=0;
 
-    int tf_num=10;
+    int tf_num=11;
 
     for(int i=0;i<tf_num;i++){
         char t[100];
@@ -53,6 +53,19 @@ Window::Window(MainWindow *mw)
         }
         fclose(histogram);
     }
+
+    for(int i=0;i<tf_num;i++){
+        char t[30];
+        sprintf(t,"color_table%d.txt",i);
+        FILE *color_table=fopen(t,"w");
+        for(int j=0;j<256;j++){
+            fprintf(color_table,"0.0 0.0 0.0 0.0\n");
+        }
+        fclose(color_table);
+    }
+
+
+
 
     glWidget_75d_all_map_rf = new GLWidget(mw->filepath,this);
     ww=glWidget_75d_all_map_rf->w;
@@ -109,13 +122,13 @@ Window::Window(MainWindow *mw)
     z_slice->setMouseTracking(true);
 
 
-    cut_plane=createSlider(dd-1);
-    cut_plane->setValue(dd-1);
+    cut_plane=createSlider(dd);
+    cut_plane->setValue(dd);
 
 
     connect(cut_plane,SIGNAL(valueChanged(int)),this,SLOT(cut_flag2(int)));
 
-    QPushButton *apply_cut=new QPushButton;
+    QLabel *apply_cut=new QLabel;
     apply_cut->setText("Cut_plane (z-axis)");
 
 
@@ -198,7 +211,7 @@ Window::Window(MainWindow *mw)
     connect(for_magic_wand,SIGNAL(valueChanged(int)),y_slice,SLOT(set_tolerance(int)));
     connect(for_magic_wand,SIGNAL(valueChanged(int)),z_slice,SLOT(set_tolerance(int)));
 
-    for_magic_wand->setValue(1);
+//    for_magic_wand->setValue(1);
 
     QHBoxLayout *brush_setting=new QHBoxLayout;
     brush_setting->addWidget(brush_slider);
@@ -240,8 +253,9 @@ Window::Window(MainWindow *mw)
     ambi->setTickPosition(QSlider::TicksRight);
     ambi->setValue(35);
 
-    QPushButton *ambi_b=new QPushButton;
-    ambi_b->setText("Ambient");
+    QLabel *ambi_b=new QLabel;
+    ambi_b->setText("Amb");
+
 
     QVBoxLayout *am=new QVBoxLayout;
     am->addWidget(ambi);
@@ -254,8 +268,8 @@ Window::Window(MainWindow *mw)
     diff->setTickPosition(QSlider::TicksRight);
     diff->setValue(10);
 
-    QPushButton *diff_b=new QPushButton;
-    diff_b->setText("Diffuse");
+    QLabel *diff_b=new QLabel;
+    diff_b->setText("Dif");
 
     QVBoxLayout *di=new QVBoxLayout;
     di->addWidget(diff);
@@ -269,8 +283,8 @@ Window::Window(MainWindow *mw)
     spec->setTickPosition(QSlider::TicksRight);
     spec->setValue(10);
 
-    QPushButton *spec_b=new QPushButton;
-    spec_b->setText("Specular");
+    QLabel *spec_b=new QLabel;
+    spec_b->setText("Spec");
 
     QVBoxLayout *sp=new QVBoxLayout;
     sp->addWidget(spec);
@@ -283,22 +297,22 @@ Window::Window(MainWindow *mw)
     shin->setTickPosition(QSlider::TicksRight);
     shin->setValue(8);
 
-    QPushButton *shin_b=new QPushButton;
-    shin_b->setText("Shinese");
+    QLabel *shin_b=new QLabel;
+    shin_b->setText("Shin");
 
     QVBoxLayout *sh=new QVBoxLayout;
     sh->addWidget(shin);
     sh->addWidget(shin_b);
 
     QSlider *l_t = new QSlider(Qt::Vertical);
-    l_t->setRange(0, 500);
+    l_t->setRange(0, 100);
     l_t->setSingleStep(1);
     l_t->setTickInterval(10);
     l_t->setTickPosition(QSlider::TicksRight);
-    l_t->setValue(50);
+    l_t->setValue(8);
 
-    QPushButton *l_t_b=new QPushButton;
-    l_t_b->setText("Light level");
+    QLabel *l_t_b=new QLabel;
+    l_t_b->setText("LL");
 
     QVBoxLayout *l_=new QVBoxLayout;
     l_->addWidget(l_t);

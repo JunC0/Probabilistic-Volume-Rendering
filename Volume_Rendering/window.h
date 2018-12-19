@@ -10,6 +10,7 @@
 
 #include <QWidget>
 #include <QMatrix4x4>
+#include <QLabel>
 QT_BEGIN_NAMESPACE
 class QSlider;
 class QPushButton;
