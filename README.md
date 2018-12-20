@@ -1,4 +1,4 @@
-# ProbabilisticVolumeRendering_ver1
+# ProbabilisticVolumeRendering
 Probabilistic Volume Rendering
 
 - Related Paper: 
