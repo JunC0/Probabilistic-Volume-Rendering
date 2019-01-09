@@ -13,7 +13,6 @@
 #include <QMessageBox>
 #include <QDockWidget>
 
-#include "user_control2.h"
 MainWindow::MainWindow()
 {
 

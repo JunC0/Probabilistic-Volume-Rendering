@@ -6,7 +6,6 @@
 
 
 #include "glwidget2.h"
-#include "user_control.h"
 #include <QMouseEvent>
 #include <QOpenGLShaderProgram>
 #include <QCoreApplication>
